@@ -12,24 +12,28 @@
             </p>
         </div>
       </form>
+      <image-crop :image="image" :imageReady="imageReady" v-if="imageReady"></image-crop>
   </div>
 </template>
 
 <script>
-  import { resizeImage } from '../services/resize.service'
-  import { upload } from '../services/file-upload.service'
+  import { resizeImage, imageFromFile } from '../services/resize.service'
+  import ImageCrop from './ImageCrop.vue'
+  // import { upload } from '../services/file-upload.service'
   import { STATUS_INITIAL, STATUS_SAVING, STATUS_SUCCESS, STATUS_FAILED } from '../constants'
   const FIELD_NAME = 'recipe'
 
   export default {
     name: 'UploadComponent',
+    components: {ImageCrop},
     data () {
       return {
         uploadedFiles: [],
         uploadError: null,
         ingredients: [],
         currentStatus: null,
-        uploadFieldName: FIELD_NAME
+        uploadFieldName: FIELD_NAME,
+        image: null
       }
     },
     computed: {
@@ -44,6 +48,9 @@
       },
       isFailed () {
         return this.currentStatus === STATUS_FAILED
+      },
+      imageReady () {
+        return this.image !== null
       }
     },
     methods: {
@@ -61,17 +68,26 @@
         resizeImage(image)
           .then(data => {
             formData.set(FIELD_NAME, data)
-            return upload(formData)
-          }).then(ingredients => {
-            this.currentStatus = STATUS_SUCCESS
-            this.$emit('uploadDone', STATUS_SUCCESS, ingredients)
+            console.log(image)
+            // add canvas dynamically
+            // have crop component
+            // select crop
+            // resizeIma
+            // upload
+            // return upload(formData)
+            return imageFromFile(formData.get(FIELD_NAME))
           })
-          .catch(err => {
-            console.log('upload failed', err)
-            this.uploadError = err.response
-            this.currentStatus = STATUS_FAILED
-            this.$emit('uploadDone', STATUS_FAILED, null)
-          })
+          .then(image => this.updateBackground(image))
+          // .then(ingredients => {
+          //   this.currentStatus = STATUS_SUCCESS
+          //   this.$emit('uploadDone', STATUS_SUCCESS, ingredients)
+          // })
+          // .catch(err => {
+          //   console.log('upload failed', err)
+          //   this.uploadError = err.response
+          //   this.currentStatus = STATUS_FAILED
+          //   this.$emit('uploadDone', STATUS_FAILED, null)
+          // })
 
         // upload(formData)
         //   .then(x => {
@@ -101,8 +117,14 @@
             formData.append(fieldName, fileList[x], fileList[x].name)
           })
 
+        imageFromFile(formData.get(FIELD_NAME))
+        // imageFromFile(formData[FIELD_NAME])
+          .then(image => {
+            this.image = image
+          })
+        // this.image = formData.get(FIELD_NAME)
         // save it
-        this.save(formData)
+        // this.save(formData)
       }
     },
     mounted () {

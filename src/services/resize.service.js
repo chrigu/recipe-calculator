@@ -24,6 +24,26 @@ function dataURLToBlob (dataURL) {
   return new Blob([uInt8Array], {type: contentType})
 }
 
+function imageFromFile (file) {
+  if (file.type.match(/image.*/)) {
+    console.log('image from file')
+
+    return new Promise(function (resolve, reject) {
+      // Load the image
+      let reader = new FileReader()
+      reader.onload = function (readerEvent) {
+        let image = new Image()
+
+        image.onload = function (imageEvent) {
+          resolve(image)
+        }
+        image.src = readerEvent.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+}
+
 function resizeImage (file) {
   // Resize the image (https://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload)
   // Ensure it's an image
@@ -67,4 +87,47 @@ function resizeImage (file) {
   }
 }
 
-export { resizeImage }
+function cropAndResizeImage (file, maxSize, x, y, width, height) {
+  // Resize the image (https://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload)
+  // Ensure it's an image
+  if (file.type.match(/image.*/)) {
+    console.log('Crop and resize')
+
+    return new Promise(function (resolve, reject) {
+      // Load the image
+      let reader = new FileReader()
+      reader.onload = function (readerEvent) {
+        let image = new Image()
+
+        image.onload = function (imageEvent) {
+          // Resize the image
+          let canvas = document.createElement('canvas')
+          let maxSize = 544// TODO : pull max size from a site config
+          let width = image.width
+          let height = image.height
+          if (width > height) {
+            if (width > maxSize) {
+              height *= maxSize / width
+              width = maxSize
+            }
+          } else {
+            if (height > maxSize) {
+              width *= maxSize / height
+              height = maxSize
+            }
+          }
+          canvas.width = width
+          canvas.height = height
+          canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+          let dataUrl = canvas.toDataURL('image/jpeg')
+          let data = dataURLToBlob(dataUrl)
+          resolve(data)
+        }
+        image.src = readerEvent.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+}
+
+export { resizeImage, imageFromFile, cropAndResizeImage }
