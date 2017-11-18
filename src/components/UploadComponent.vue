@@ -12,20 +12,39 @@
             </p>
         </div>
       </form>
-      <image-crop :image="image" :imageReady="imageReady" v-if="imageReady"></image-crop>
+      <div class="crop-container" v-if="imageReady" >
+        <!--image-crop :image="image" :imageReady="imageReady" @cropDone="upload"></image-crop-->
+        <vue-cropper
+            ref='cropper'
+            :guides="false"
+            :view-mode="2"
+            drag-mode="crop"
+            :auto-crop-area="0.5"
+            :min-container-width="250"
+            :min-container-height="180"
+            :background="true"
+            :rotatable="true"
+            :src="image.src"
+            alt="Source Image"
+            :img-style="{width: '400px', height: '300px'}"
+            :crop="crop">
+        </vue-cropper>
+        <button @click="cropAndUpload">Crop & Process</button>
+      </div>
   </div>
 </template>
 
 <script>
-  import { resizeImage, imageFromFile } from '../services/resize.service'
+  import VueCropper from 'vue-cropperjs'
+  import { imageFromFile, resizeImage } from '../services/resize.service'
   import ImageCrop from './ImageCrop.vue'
-  // import { upload } from '../services/file-upload.service'
+  import { upload } from '../services/file-upload.service'
   import { STATUS_INITIAL, STATUS_SAVING, STATUS_SUCCESS, STATUS_FAILED } from '../constants'
   const FIELD_NAME = 'recipe'
 
   export default {
     name: 'UploadComponent',
-    components: {ImageCrop},
+    components: {ImageCrop, VueCropper},
     data () {
       return {
         uploadedFiles: [],
@@ -33,7 +52,8 @@
         ingredients: [],
         currentStatus: null,
         uploadFieldName: FIELD_NAME,
-        image: null
+        image: null,
+        formImage: null
       }
     },
     computed: {
@@ -60,34 +80,40 @@
         this.uploadedFiles = []
         this.uploadError = null
       },
-      save (formData) {
+      upload (canvas) {
         // upload data to the server
         this.currentStatus = STATUS_SAVING
-        let image = formData.get(FIELD_NAME)
+        // this.formData.set(FIELD_NAME, imageBlob)
 
-        resizeImage(image)
-          .then(data => {
-            formData.set(FIELD_NAME, data)
-            console.log(image)
-            // add canvas dynamically
-            // have crop component
-            // select crop
-            // resizeIma
-            // upload
-            // return upload(formData)
-            return imageFromFile(formData.get(FIELD_NAME))
+        // let formData = new FormData()
+        // formData.append(FIELD_NAME, imageBlob)
+
+        // upload(formData)
+        let resizedBlog = resizeImage(canvas, 1000)
+        console.log('newData', resizedBlog)
+        let formData = new FormData()
+        formData.append(FIELD_NAME, resizedBlog)
+        console.log(formData)
+        // formData.set(FIELD_NAME, data)
+        // console.log(image)
+        // add canvas dynamically
+        // have crop component
+        // select crop
+        // resizeIma
+        // upload
+        // return imageFromFile(formData.get(FIELD_NAME))
+        upload(formData)
+          // .then(image => this.updateBackground(image))
+          .then(ingredients => {
+            this.currentStatus = STATUS_SUCCESS
+            this.$emit('uploadDone', STATUS_SUCCESS, ingredients)
           })
-          .then(image => this.updateBackground(image))
-          // .then(ingredients => {
-          //   this.currentStatus = STATUS_SUCCESS
-          //   this.$emit('uploadDone', STATUS_SUCCESS, ingredients)
-          // })
-          // .catch(err => {
-          //   console.log('upload failed', err)
-          //   this.uploadError = err.response
-          //   this.currentStatus = STATUS_FAILED
-          //   this.$emit('uploadDone', STATUS_FAILED, null)
-          // })
+          .catch(err => {
+            console.log('upload failed', err)
+            this.uploadError = err.response
+            this.currentStatus = STATUS_FAILED
+            this.$emit('uploadDone', STATUS_FAILED, null)
+          })
 
         // upload(formData)
         //   .then(x => {
@@ -106,18 +132,21 @@
       },
       filesChange (fieldName, fileList) {
         // handle file changes
-        const formData = new FormData()
+        // if FormData .set & .get are supported (not Safari)
+        // this.formData = new FormData()
 
-        if (!fileList.length) return
+        if (fieldName !== FIELD_NAME && !fileList.length) return
 
+        this.formImage = fileList[0]
         // append the files to FormData
-        Array
-          .from(Array(fileList.length).keys())
-          .map(x => {
-            formData.append(fieldName, fileList[x], fileList[x].name)
-          })
-
-        imageFromFile(formData.get(FIELD_NAME))
+        // Array
+        //   .from(Array(fileList.length).keys())
+        //   .map(x => {
+        //     this.formData.append(fieldName, fileList[x], fileList[x].name)
+        //   })
+        // console.log(this.formData.get)
+        // imageFromFile(this.formData.get(FIELD_NAME))
+        imageFromFile(this.formImage)
         // imageFromFile(formData[FIELD_NAME])
           .then(image => {
             this.image = image
@@ -125,6 +154,15 @@
         // this.image = formData.get(FIELD_NAME)
         // save it
         // this.save(formData)
+      },
+      crop (e) {
+        let data = e.detail
+        // let previewAspectRatio = data.width / data.height
+        console.log(data, this.$refs.cropper.getCroppedCanvas())
+      },
+      cropAndUpload (e) {
+        console.log(this.$refs.cropper.getCroppedCanvas())
+        this.upload(this.$refs.cropper.getCroppedCanvas())
       }
     },
     mounted () {

@@ -44,90 +44,125 @@ function imageFromFile (file) {
   }
 }
 
-function resizeImage (file) {
-  // Resize the image (https://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload)
-  // Ensure it's an image
-  if (file.type.match(/image.*/)) {
-    console.log('An image has been loaded')
-
-    return new Promise(function (resolve, reject) {
-      // Load the image
-      let reader = new FileReader()
-      reader.onload = function (readerEvent) {
-        let image = new Image()
-
-        image.onload = function (imageEvent) {
-          // Resize the image
-          let canvas = document.createElement('canvas')
-          let maxSize = 544// TODO : pull max size from a site config
-          let width = image.width
-          let height = image.height
-          if (width > height) {
-            if (width > maxSize) {
-              height *= maxSize / width
-              width = maxSize
-            }
-          } else {
-            if (height > maxSize) {
-              width *= maxSize / height
-              height = maxSize
-            }
-          }
-          canvas.width = width
-          canvas.height = height
-          canvas.getContext('2d').drawImage(image, 0, 0, width, height)
-          let dataUrl = canvas.toDataURL('image/jpeg')
-          let data = dataURLToBlob(dataUrl)
-          resolve(data)
-        }
-        image.src = readerEvent.target.result
-      }
-      reader.readAsDataURL(file)
-    })
+function resizeImage (originalCanvas, maxSize) {
+  // // Resize the image (https://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload)
+  // // Ensure it's an image
+  // if (file.type.match(/image.*/)) {
+  //   console.log('An image has been loaded')
+  //
+  //   return new Promise(function (resolve, reject) {
+  //     // Load the image
+  //     let reader = new FileReader()
+  //     reader.onload = function (readerEvent) {
+  //       let image = new Image()
+  //
+  //       image.onload = function (imageEvent) {
+  //         // Resize the image
+  //         let canvas = document.createElement('canvas')
+  //         let maxSize = 544// TODO : pull max size from a site config
+  //         let width = image.width
+  //         let height = image.height
+  //         if (width > height) {
+  //           if (width > maxSize) {
+  //             height *= maxSize / width
+  //             width = maxSize
+  //           }
+  //         } else {
+  //           if (height > maxSize) {
+  //             width *= maxSize / height
+  //             height = maxSize
+  //           }
+  //         }
+  //         canvas.width = width
+  //         canvas.height = height
+  //         canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+  //         let dataUrl = canvas.toDataURL('image/jpeg')
+  //         let data = dataURLToBlob(dataUrl)
+  //         resolve(data)
+  //       }
+  //       image.src = readerEvent.target.result
+  //     }
+  //     reader.readAsDataURL(file)
+  //   })
+  // }
+  console.log('Crop', maxSize)
+  // return new Promise(function (resolve, reject) {
+  //   // Load the image
+  //   let reader = new FileReader()
+  //   reader.onload = function (readerEvent) {
+  //     let image = new Image()
+  //
+  //     image.onload = function (imageEvent) {
+        // Resize the image
+  let canvas = document.createElement('canvas')
+  let width = originalCanvas.width
+  let height = originalCanvas.height
+  if (width > height) {
+    if (width > maxSize) {
+      height *= maxSize / width
+      width = maxSize
+    }
+  } else {
+    if (height > maxSize) {
+      width *= maxSize / height
+      height = maxSize
+    }
   }
+  canvas.width = width
+  canvas.height = height
+  // canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+  canvas.getContext('2d').drawImage(originalCanvas, 0, 0, width, height)
+  let dataUrl = canvas.toDataURL('image/jpeg')
+  let data = dataURLToBlob(dataUrl)
+  return data
+        // resolve(data)
+  //     }
+  //     image.src = readerEvent.target.result
+  //   }
+  //   reader.readAsDataURL(file)
+  // })
 }
 
-function cropAndResizeImage (file, maxSize, x, y, width, height) {
+function cropAndResizeImage (image, maxSize, sourceX, sourceY, sourceWidth, sourceHeight) {
   // Resize the image (https://stackoverflow.com/questions/23945494/use-html5-to-resize-an-image-before-upload)
   // Ensure it's an image
-  if (file.type.match(/image.*/)) {
-    console.log('Crop and resize')
-
-    return new Promise(function (resolve, reject) {
-      // Load the image
-      let reader = new FileReader()
-      reader.onload = function (readerEvent) {
-        let image = new Image()
-
-        image.onload = function (imageEvent) {
-          // Resize the image
-          let canvas = document.createElement('canvas')
-          let maxSize = 544// TODO : pull max size from a site config
-          let width = image.width
-          let height = image.height
-          if (width > height) {
-            if (width > maxSize) {
-              height *= maxSize / width
-              width = maxSize
-            }
-          } else {
-            if (height > maxSize) {
-              width *= maxSize / height
-              height = maxSize
-            }
-          }
-          canvas.width = width
-          canvas.height = height
-          canvas.getContext('2d').drawImage(image, 0, 0, width, height)
-          let dataUrl = canvas.toDataURL('image/jpeg')
-          let data = dataURLToBlob(dataUrl)
-          resolve(data)
-        }
-        image.src = readerEvent.target.result
-      }
-      reader.readAsDataURL(file)
-    })
+  console.log('Crop and resize')
+  console.log(sourceWidth, sourceHeight)
+  // return new Promise(function (resolve, reject) {
+  //   // Load the image
+  //   let reader = new FileReader()
+  //   reader.onload = function (readerEvent) {
+  //     let image = new Image()
+  //
+  //     image.onload = function (imageEvent) {
+        // Resize the image
+  let canvas = document.createElement('canvas')
+  let width = image.width
+  let height = image.height
+  if (width > height) {
+    if (width > maxSize) {
+      height *= maxSize / width
+      width = maxSize
+    }
+  } else {
+    if (height > maxSize) {
+      width *= maxSize / height
+      height = maxSize
+    }
   }
+  canvas.width = width
+  canvas.height = height
+  // canvas.getContext('2d').drawImage(image, 0, 0, width, height)
+  canvas.getContext('2d').drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, width, height)
+  let dataUrl = canvas.toDataURL('image/jpeg')
+  // let data = dataURLToBlob(dataUrl)
+  return dataUrl
+        // resolve(data)
+  //     }
+  //     image.src = readerEvent.target.result
+  //   }
+  //   reader.readAsDataURL(file)
+  // })
 }
 
-export { resizeImage, imageFromFile, cropAndResizeImage }
+export { imageFromFile, cropAndResizeImage, dataURLToBlob, resizeImage }

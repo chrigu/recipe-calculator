@@ -1464,6 +1464,10 @@ create-hmac@^1.1.0, create-hmac@^1.1.2, create-hmac@^1.1.4:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+cropperjs@~0.8.x:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/cropperjs/-/cropperjs-0.8.1.tgz#3dc01813e2f6d1df2c8909e1ce092146c692548e"
+
 cross-env@^5.0.1:
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.0.5.tgz#4383d364d9660873dd185b398af3bfef5efffef3"
@@ -5676,6 +5680,12 @@ vm-browserify@0.0.4:
 void-elements@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/void-elements/-/void-elements-2.0.1.tgz#c066afb582bb1cb4128d60ea92392e94d5e9dbec"
+
+vue-cropperjs@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/vue-cropperjs/-/vue-cropperjs-2.1.1.tgz#9d9afc3d94f21c37677abb30edd57e25423f229f"
+  dependencies:
+    cropperjs "~0.8.x"
 
 vue-hot-reload-api@^2.1.0:
   version "2.1.1"
